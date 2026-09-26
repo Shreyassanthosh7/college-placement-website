@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+
+/* Design tokens — sampled directly from the official Placement Cell seal
+   (navy #14263E, gold #D8B969). Light-blue pass, per direct request: light
+   blue as the page background, navy as the primary accent (buttons, links,
+   headings, borders) — grounded in the same brand colors as the earlier
+   dark theme, just flipped to a light base instead of a dark one. Gold is
+   kept only as a very small brand touch (the logo itself, the "active"
+   status pulse) rather than a dominant accent, since the ask was
+   specifically light blue + navy. */
+@theme {
+  --color-primary: #14263E;               /* navy — buttons, links, headings, borders */
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #3B6EA5;             /* mid blue — gradients, secondary accents */
+  --color-accent: #D8B969;                /* gold — minor brand touches only (logo, active-status dot) */
+  --color-accent-foreground: #14263E;
+  --color-background: #C6DEF4;                       /* light blue page background */
+  --color-background-alt: #B3D2EA; 
+  --color-foreground: #14263E;            /* navy text — strong contrast on the light background */
+  --color-card: #FFFFFF;
+  --color-card-foreground: #14263E;
+  --color-muted: #E1EDF8;
+  --color-muted-foreground: #4C6B8A;
+  --color-border: #C7DCEF;
+  --color-destructive: #DC2626;
+  --color-destructive-foreground: #FFFFFF;
+  --color-ring: #14263E;
+  --color-glow: #14263E33;
+
+  --font-display: "EB Garamond", Garamond, Georgia, serif;
+  --font-body: "EB Garamond", Garamond, Georgia, serif;
+}
+
+* { scrollbar-color: var(--color-border) var(--color-background); }
+
+body {
+  background-color: var(--color-background);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(59,110,165,0.10), transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(20,38,62,0.06), transparent 50%);
+  background-attachment: fixed;
+  color: var(--color-foreground);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+::selection { background: var(--color-primary); color: #FFFFFF; }
+
+/* Glass card surface — a soft white panel with a subtle blue-tinted
+   border and shadow, in place of plain flat white cards. On the earlier
+   dark theme this was a translucent dark blur; on a light background the
+   equivalent "glass" look is a mostly-opaque white with a faint blur and
+   soft shadow, not a dark tint. */
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82));
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 1px 2px rgba(20,38,62,0.04), 0 8px 24px rgba(20,38,62,0.05);
+}
+
+/* Navy glow used on hover states / focal CTAs — soft and shadow-like on a
+   light background rather than a bright neon glow, which would look out
+   of place once the base is light instead of dark. */
+.glow-on-hover {
+  transition: box-shadow 300ms ease, border-color 300ms ease, transform 300ms ease;
+}
+.glow-on-hover:hover {
+  box-shadow: 0 0 0 1px rgba(20,38,62,0.12), 0 14px 32px -10px rgba(20,38,62,0.18);
+  border-color: rgba(20,38,62,0.25);
+}
+
+/* Animated aurora/mesh blobs for hero backgrounds — light blue + navy,
+   low opacity so they read as a soft wash of color rather than a jarring
+   shape against the light background. */
+@keyframes drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(3%, -4%) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.35;
+  animation: drift 16s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Animated gradient text for headline emphasis — navy-to-blue instead of
+   gold, matching the new primary palette. */
+@keyframes shimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.text-shimmer {
+  background: linear-gradient(90deg, #14263E, #3B6EA5, #14263E);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* Navy outline button that fills solid on hover — used for secondary CTAs
+   across company/drive cards instead of one-off inline hover handlers.
+   Driven entirely by --color-primary, so it followed the theme from gold
+   to navy automatically; kept the original class name to avoid touching
+   every file that references it. */
+.btn-outline-gold {
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
+}
+.btn-outline-gold:hover {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  transform: translateY(-1px);
+}
+
+button:not(:disabled), a, [role="button"] { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+/* Scroll-reveal base state — GSAP flips these via inline styles/opacity, this
+   just guards against a flash of fully-visible content before JS runs */
+.reveal-init { opacity: 0; }
+
+/* Respect reduced-motion preference site-wide */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal-init { opacity: 1 !important; }
+}
