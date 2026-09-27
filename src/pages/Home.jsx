@@ -61,8 +61,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Listing counts come from live data; Students Placed is set by an admin
-          in Settings because this project has no placements collection yet. */}
+      {/* Listing counts come from live data. The public Students Placed total
+          is updated atomically as private placement records are managed. */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-6 -mt-4 relative z-10">
         <Reveal stagger className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[

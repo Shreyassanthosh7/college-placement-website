@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAllCompanies, deleteCompany, setCompanyStatus } from '../services/companyService'
+import { getAllCompanies, setCompanyStatus } from '../services/companyService'
+import { archiveRecord } from '../services/archiveService'
 import Badge from '../components/Badge'
 import EmptyState from '../components/EmptyState'
+import AccessibleDialog from '../components/AccessibleDialog'
 import { formatDate } from '../utils/formatDate'
 
 export default function AdminCompanies() {
@@ -10,7 +12,8 @@ export default function AdminCompanies() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [pendingAction, setPendingAction] = useState(null) // company id currently being acted on
-  const [confirmDelete, setConfirmDelete] = useState(null) // company object pending delete confirmation
+  const [confirmArchive, setConfirmArchive] = useState(null)
+  const headingRef = useRef(null)
 
   async function load() {
     setLoading(true)
@@ -42,14 +45,15 @@ export default function AdminCompanies() {
     }
   }
 
-  async function handleDelete(company) {
+  async function handleArchive(company) {
     setPendingAction(company.id)
     try {
-      await deleteCompany(company.id)
+      await archiveRecord('company', company.id)
       setCompanies((list) => list.filter((c) => c.id !== company.id))
-      setConfirmDelete(null)
+      setConfirmArchive(null)
     } catch {
-      setError('Unable to delete company. Please try again.')
+      setError('Unable to archive company. Please try again.')
+      setConfirmArchive(null)
     } finally {
       setPendingAction(null)
     }
@@ -58,17 +62,17 @@ export default function AdminCompanies() {
   return (
     <div>
       <div className="flex items-center justify-between gap-4 mb-1 flex-wrap">
-        <h1 className="font-display text-2xl font-bold">Companies</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="font-display text-2xl font-bold focus-visible:outline focus-visible:outline-2">Companies</h1>
         <Link
           to="/admin/companies/add"
-          className="glow-on-hover rounded-full px-5 py-2.5 text-sm font-semibold"
+          className="min-h-11 glow-on-hover rounded-full px-5 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2"
           style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
         >
           + Add Company
         </Link>
       </div>
       <p className="text-muted-foreground mb-6">
-        Add, edit, publish, and remove placement opportunities. Changes appear on the public
+        Add, edit, publish, and archive placement opportunities. Changes appear on the public
         site immediately once published.
       </p>
 
@@ -83,7 +87,7 @@ export default function AdminCompanies() {
       ) : companies.length === 0 ? (
         <EmptyState title="No companies yet." description="Add your first placement opportunity to get started." />
       ) : (
-        <div className="glass rounded-xl overflow-x-auto">
+        <div role="region" aria-label="Companies list; scroll horizontally to see every column" tabIndex={0} className="glass rounded-xl overflow-x-auto focus-visible:outline focus-visible:outline-2">
           <table className="w-full text-sm min-w-[820px]">
             <thead className="text-left" style={{ backgroundColor: 'var(--color-muted)' }}>
               <tr>
@@ -117,29 +121,31 @@ export default function AdminCompanies() {
                   <td className="px-4 py-3"><Badge status={c.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3 whitespace-nowrap">
-                      <Link to={`/companies/${c.id}`} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'var(--color-primary)' }}>
+                      <Link to={`/companies/${c.id}`} target="_blank" rel="noopener noreferrer" aria-label={`View ${c.name} on the public site`} className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline focus-visible:outline-2" style={{ color: 'var(--color-primary)' }}>
                         View
                       </Link>
-                      <Link to={`/admin/companies/edit/${c.id}`} className="hover:underline" style={{ color: 'var(--color-primary)' }}>
+                      <Link to={`/admin/companies/edit/${c.id}`} aria-label={`Edit ${c.name}`} className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline focus-visible:outline-2" style={{ color: 'var(--color-primary)' }}>
                         Edit
                       </Link>
                       <button
                         type="button"
                         onClick={() => handleTogglePublish(c)}
                         disabled={pendingAction === c.id}
-                        className="hover:underline disabled:opacity-50"
+                        aria-label={`${c.status === 'active' || c.status === 'upcoming' ? 'Unpublish' : 'Publish'} ${c.name}`}
+                        className="min-h-11 px-2 hover:underline disabled:opacity-50 focus-visible:outline focus-visible:outline-2"
                         style={{ color: 'var(--color-primary)' }}
                       >
                         {c.status === 'active' || c.status === 'upcoming' ? 'Unpublish' : 'Publish'}
                       </button>
                       <button
                         type="button"
-                        onClick={() => setConfirmDelete(c)}
+                        onClick={() => setConfirmArchive(c)}
                         disabled={pendingAction === c.id}
-                        className="hover:underline disabled:opacity-50"
+                        aria-label={`Archive ${c.name}`}
+                        className="min-h-11 px-2 hover:underline disabled:opacity-50 focus-visible:outline focus-visible:outline-2"
                         style={{ color: 'var(--color-destructive)' }}
                       >
-                        Delete
+                        Archive
                       </button>
                     </div>
                   </td>
@@ -150,41 +156,39 @@ export default function AdminCompanies() {
         </div>
       )}
 
-      {/* Delete confirmation modal — per spec section 18, never delete without asking */}
-      {confirmDelete && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Confirm delete"
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-          onClick={() => setConfirmDelete(null)}
+      {confirmArchive && (
+        <AccessibleDialog
+          onClose={() => setConfirmArchive(null)}
+          labelledBy="archive-company-title"
+          describedBy="archive-company-description"
+          fallbackFocusRef={headingRef}
+          closeOnEscape={!pendingAction}
+          className="glass rounded-xl p-6 max-w-sm w-full"
         >
-          <div className="glass rounded-xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h2 className="font-display text-lg font-bold mb-2">Delete this company?</h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              Are you sure you want to delete <span className="font-semibold text-foreground">{confirmDelete.name}</span>?
-              This action cannot be undone.
+            <h2 id="archive-company-title" className="font-display text-lg font-bold mb-2">Archive this company?</h2>
+            <p id="archive-company-description" className="text-sm text-muted-foreground mb-6">
+              <span className="font-semibold text-foreground">{confirmArchive.name}</span> will be hidden from the public site. You can restore it from Archive.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setConfirmDelete(null)}
-                className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                onClick={() => setConfirmArchive(null)}
+                disabled={pendingAction === confirmArchive.id}
+                className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={() => handleDelete(confirmDelete)}
-                disabled={pendingAction === confirmDelete.id}
-                className="rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60"
+                onClick={() => handleArchive(confirmArchive)}
+                disabled={pendingAction === confirmArchive.id}
+                className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60"
                 style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}
               >
-                {pendingAction === confirmDelete.id ? 'Deleting…' : 'Delete'}
+                {pendingAction === confirmArchive.id ? 'Archiving…' : 'Archive'}
               </button>
             </div>
-          </div>
-        </div>
+        </AccessibleDialog>
       )}
     </div>
   )

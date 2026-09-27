@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { getSettings, updateSettings } from '../services/settingsService'
 import { mockSettings } from '../data/mockData'
 
 const inputClass =
-  'w-full rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
+  'w-full min-h-11 rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
 const labelClass = 'block text-sm font-medium mb-1'
 
 function Field({ label, children }) {
@@ -63,7 +64,15 @@ export default function AdminSettings() {
     setSaveError(null)
     setSaved(false)
     try {
-      await updateSettings(form)
+      const settingsToSave = { ...form }
+      delete settingsToSave.id
+      delete settingsToSave.createdAt
+      delete settingsToSave.updatedAt
+      // This aggregate is maintained transactionally when placement records
+      // are added, archived, or restored; an older open Settings form must
+      // not overwrite a newer count.
+      delete settingsToSave.studentsPlaced
+      await updateSettings(settingsToSave)
       setSaved(true)
     } catch (err) {
       if (err.code === 'permission-denied') {
@@ -178,23 +187,13 @@ export default function AdminSettings() {
         </section>
 
         <section className="glass rounded-xl p-6">
-          <h2 className="font-display text-lg font-bold mb-4">Homepage Statistics</h2>
-          <Field label="Students Placed">
-            <input
-              type="number"
-              min="0"
-              step="1"
-              inputMode="numeric"
-              className={inputClass}
-              value={form.studentsPlaced ?? ''}
-              onChange={(e) => update('studentsPlaced', e.target.value === '' ? null : Number(e.target.value))}
-              disabled={saving}
-              placeholder="Leave blank to show —"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              This value appears on the Home page. Company and drive counts update from their listings.
-            </p>
-          </Field>
+          <h2 className="font-display text-lg font-bold mb-2">Homepage Statistics</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            The Students Placed total now updates from placement records. Any existing total is retained as the historical starting count.
+          </p>
+          <Link to="/admin/placements" className="inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}>
+            Manage Placements
+          </Link>
         </section>
 
         <section className="glass rounded-xl p-6">

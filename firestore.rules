@@ -12,8 +12,9 @@ rules_version = '2';
 //
 // Note: `gallery` and Firebase Storage were removed at the developer's
 // request (Storage requires the paid Blaze plan for the modern default
-// bucket, and they don't want to pay for it) — this file only covers
-// companies, placementDrives, announcements, settings, and users.
+// bucket, and they don't want to pay for it). This file covers companies,
+// placementDrives, announcements, private placements/archive, settings,
+// and users.
 //
 // What this does NOT do (documented honestly rather than pretended):
 // - Rate limiting. Firestore Security Rules have no request-rate concept
@@ -92,11 +93,37 @@ service cloud.firestore {
         data.status in ['draft', 'upcoming', 'completed'];
     }
 
+    function isValidPlacement(data) {
+      return isNonEmptyString(data.studentName, 200) &&
+        isNonEmptyString(data.employer, 200) &&
+        isNonEmptyString(data.role, 200) &&
+        (data.graduationYear is int || data.graduationYear is float) &&
+        data.graduationYear >= 1950 && data.graduationYear <= 2100;
+    }
+
+    function isValidArchiveRecord(data) {
+      return data.keys().hasOnly(['entityType', 'originalId', 'label', 'record', 'archivedAt']) &&
+        data.entityType in ['company', 'drive', 'announcement', 'team', 'placement'] &&
+        isNonEmptyString(data.originalId, 200) &&
+        isNonEmptyString(data.label, 300) &&
+        data.record is map &&
+        data.archivedAt is timestamp;
+    }
+
     // Same shape as companies: public visitors see upcoming/completed
     // drives only, never draft. Admins have full CRUD, validated.
     match /placementDrives/{driveId} {
       allow read: if resource.data.status in ['upcoming', 'completed'] || isAdmin();
       allow create, update: if isAdmin() && isValidDrive(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Placement records can contain student names and employer details, so
+    // they are strictly admin-only. The public homepage receives only the
+    // aggregate count stored in settings/general.studentsPlaced.
+    match /placements/{placementId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin() && isValidPlacement(request.resource.data);
       allow delete: if isAdmin();
     }
 
@@ -137,6 +164,16 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if isAdmin();
       allow delete: if false;
+    }
+
+    // Archive snapshots are private admin data. Creation and removal of the
+    // source item happen atomically in a transaction; restore transactions
+    // recreate the source and remove its snapshot in the same commit.
+    match /archive/{archiveId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidArchiveRecord(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
     // Every rule this project needs is now defined above — nothing left to

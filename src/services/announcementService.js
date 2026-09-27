@@ -1,4 +1,4 @@
-import { getAll, getOne, createDoc, updateDocById, deleteDocById, subscribeToCollection, where, orderBy } from '../firebase/firestore'
+import { getAll, getOne, createDoc, updateDocById, subscribeToCollection, where, orderBy } from '../firebase/firestore'
 
 const COLLECTION = 'announcements'
 
@@ -36,10 +36,6 @@ export function createAnnouncement(data) {
 
 export function updateAnnouncement(id, data) {
   return updateDocById(COLLECTION, id, data)
-}
-
-export function deleteAnnouncement(id) {
-  return deleteDocById(COLLECTION, id)
 }
 
 export function setAnnouncementStatus(id, status) {

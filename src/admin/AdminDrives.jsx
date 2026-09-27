@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAllDrives, deleteDrive, setDriveStatus } from '../services/driveService'
+import { getAllDrives, setDriveStatus } from '../services/driveService'
+import { archiveRecord } from '../services/archiveService'
 import Badge from '../components/Badge'
 import EmptyState from '../components/EmptyState'
+import AccessibleDialog from '../components/AccessibleDialog'
 import { formatDate, formatTime } from '../utils/formatDate'
 
 export default function AdminDrives() {
@@ -10,7 +12,8 @@ export default function AdminDrives() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [pendingAction, setPendingAction] = useState(null)
-  const [confirmDelete, setConfirmDelete] = useState(null)
+  const [confirmArchive, setConfirmArchive] = useState(null)
+  const headingRef = useRef(null)
 
   async function load() {
     setLoading(true)
@@ -54,14 +57,15 @@ export default function AdminDrives() {
     }
   }
 
-  async function handleDelete(drive) {
+  async function handleArchive(drive) {
     setPendingAction(drive.id)
     try {
-      await deleteDrive(drive.id)
+      await archiveRecord('drive', drive.id)
       setDrives((list) => list.filter((d) => d.id !== drive.id))
-      setConfirmDelete(null)
+      setConfirmArchive(null)
     } catch {
-      setError('Unable to delete drive. Please try again.')
+      setError('Unable to archive drive. Please try again.')
+      setConfirmArchive(null)
     } finally {
       setPendingAction(null)
     }
@@ -70,17 +74,17 @@ export default function AdminDrives() {
   return (
     <div>
       <div className="flex items-center justify-between gap-4 mb-1 flex-wrap">
-        <h1 className="font-display text-2xl font-bold">Placement Drives</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="font-display text-2xl font-bold focus-visible:outline focus-visible:outline-2">Placement Drives</h1>
         <Link
           to="/admin/drives/add"
-          className="glow-on-hover rounded-full px-5 py-2.5 text-sm font-semibold"
+          className="min-h-11 glow-on-hover rounded-full px-5 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2"
           style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
         >
           + Add Drive
         </Link>
       </div>
       <p className="text-muted-foreground mb-6">
-        Schedule, publish, and close out campus recruitment drives.
+        Schedule, publish, close out, and archive campus recruitment drives.
       </p>
 
       {error && (
@@ -94,7 +98,7 @@ export default function AdminDrives() {
       ) : drives.length === 0 ? (
         <EmptyState title="No placement drives yet." description="Add your first drive to get started." />
       ) : (
-        <div className="glass rounded-xl overflow-x-auto">
+        <div role="region" aria-label="Placement drives list; scroll horizontally to see every column" tabIndex={0} className="glass rounded-xl overflow-x-auto focus-visible:outline focus-visible:outline-2">
           <table className="w-full text-sm min-w-[820px]">
             <thead className="text-left" style={{ backgroundColor: 'var(--color-muted)' }}>
               <tr>
@@ -118,7 +122,7 @@ export default function AdminDrives() {
                   <td className="px-4 py-3"><Badge status={d.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3 whitespace-nowrap">
-                      <Link to={`/admin/drives/edit/${d.id}`} className="hover:underline" style={{ color: 'var(--color-primary)' }}>
+                      <Link to={`/admin/drives/edit/${d.id}`} aria-label={`Edit ${d.companyName} drive`} className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline focus-visible:outline-2" style={{ color: 'var(--color-primary)' }}>
                         Edit
                       </Link>
                       {d.status !== 'completed' && (
@@ -126,7 +130,8 @@ export default function AdminDrives() {
                           type="button"
                           onClick={() => handleTogglePublish(d)}
                           disabled={pendingAction === d.id}
-                          className="hover:underline disabled:opacity-50"
+                          aria-label={`${d.status === 'upcoming' ? 'Unpublish' : 'Publish'} ${d.companyName} drive`}
+                          className="min-h-11 px-2 hover:underline disabled:opacity-50 focus-visible:outline focus-visible:outline-2"
                           style={{ color: 'var(--color-primary)' }}
                         >
                           {d.status === 'upcoming' ? 'Unpublish' : 'Publish'}
@@ -137,7 +142,8 @@ export default function AdminDrives() {
                           type="button"
                           onClick={() => handleMarkCompleted(d)}
                           disabled={pendingAction === d.id}
-                          className="hover:underline disabled:opacity-50"
+                          aria-label={`Mark ${d.companyName} drive completed`}
+                          className="min-h-11 px-2 hover:underline disabled:opacity-50 focus-visible:outline focus-visible:outline-2"
                           style={{ color: 'var(--color-primary)' }}
                         >
                           Mark Completed
@@ -145,12 +151,13 @@ export default function AdminDrives() {
                       )}
                       <button
                         type="button"
-                        onClick={() => setConfirmDelete(d)}
+                        onClick={() => setConfirmArchive(d)}
                         disabled={pendingAction === d.id}
-                        className="hover:underline disabled:opacity-50"
+                        aria-label={`Archive ${d.companyName} drive`}
+                        className="min-h-11 px-2 hover:underline disabled:opacity-50 focus-visible:outline focus-visible:outline-2"
                         style={{ color: 'var(--color-destructive)' }}
                       >
-                        Delete
+                        Archive
                       </button>
                     </div>
                   </td>
@@ -161,37 +168,34 @@ export default function AdminDrives() {
         </div>
       )}
 
-      {confirmDelete && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Confirm delete"
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-          onClick={() => setConfirmDelete(null)}
+      {confirmArchive && (
+        <AccessibleDialog
+          onClose={() => setConfirmArchive(null)}
+          labelledBy="archive-drive-title"
+          describedBy="archive-drive-description"
+          fallbackFocusRef={headingRef}
+          closeOnEscape={!pendingAction}
+          className="glass rounded-xl p-6 max-w-sm w-full"
         >
-          <div className="glass rounded-xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h2 className="font-display text-lg font-bold mb-2">Delete this drive?</h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              Are you sure you want to delete the drive for{' '}
-              <span className="font-semibold text-foreground">{confirmDelete.companyName}</span>?
-              This action cannot be undone.
+            <h2 id="archive-drive-title" className="font-display text-lg font-bold mb-2">Archive this drive?</h2>
+            <p id="archive-drive-description" className="text-sm text-muted-foreground mb-6">
+              The drive for <span className="font-semibold text-foreground">{confirmArchive.companyName}</span> will be removed from the public site. You can restore it from Archive.
             </p>
             <div className="flex justify-end gap-3">
-              <button type="button" onClick={() => setConfirmDelete(null)} className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
+              <button type="button" onClick={() => setConfirmArchive(null)} disabled={pendingAction === confirmArchive.id} className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50">
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={() => handleDelete(confirmDelete)}
-                disabled={pendingAction === confirmDelete.id}
-                className="rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60"
+                onClick={() => handleArchive(confirmArchive)}
+                disabled={pendingAction === confirmArchive.id}
+                className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60"
                 style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}
               >
-                {pendingAction === confirmDelete.id ? 'Deleting…' : 'Delete'}
+                {pendingAction === confirmArchive.id ? 'Archiving…' : 'Archive'}
               </button>
             </div>
-          </div>
-        </div>
+        </AccessibleDialog>
       )}
     </div>
   )

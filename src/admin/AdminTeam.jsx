@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getSettings, updateSettings } from '../services/settingsService'
+import { archiveTeamMember } from '../services/archiveService'
 import { mockSettings } from '../data/mockData'
+import AccessibleDialog from '../components/AccessibleDialog'
 
-const inputClass = 'w-full rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
+const inputClass = 'w-full min-h-11 rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
 
 function normalizeMembers(members) {
   return members.map((member, index) => ({
@@ -22,9 +24,10 @@ export default function AdminTeam() {
   const [loadError, setLoadError] = useState(null)
   const [loadAttempt, setLoadAttempt] = useState(0)
   const [draft, setDraft] = useState(null)
-  const [confirmDelete, setConfirmDelete] = useState(null)
+  const [confirmArchive, setConfirmArchive] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
+  const headingRef = useRef(null)
 
   useEffect(() => {
     let cancelled = false
@@ -85,19 +88,19 @@ export default function AdminTeam() {
     }
   }
 
-  async function deleteMember(member) {
-    const nextMembers = teamMembers.filter((existing) => existing.id !== member.id)
+  async function archiveMember(member) {
     setSaving(true)
     setSaveError(null)
     try {
-      await updateSettings({ teamMembers: nextMembers })
+      await archiveTeamMember(member)
+      const nextMembers = teamMembers.filter((existing) => existing.id !== member.id)
       setTeamMembers(nextMembers)
-      setConfirmDelete(null)
+      setConfirmArchive(null)
     } catch (error) {
       setSaveError(error.code === 'permission-denied'
         ? 'Firestore denied this change. Confirm that your admin account can update settings.'
-        : `Unable to delete this team member${error.code ? ` (${error.code})` : ''}. Please try again.`)
-      setConfirmDelete(null)
+        : `Unable to archive this team member${error.code ? ` (${error.code})` : ''}. Please try again.`)
+      setConfirmArchive(null)
     } finally {
       setSaving(false)
     }
@@ -106,12 +109,12 @@ export default function AdminTeam() {
   return (
     <div>
       <div className="flex items-center justify-between gap-4 mb-1 flex-wrap">
-        <h1 className="font-display text-2xl font-bold">Team</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="font-display text-2xl font-bold focus-visible:outline focus-visible:outline-2">Team</h1>
         <button
           type="button"
           onClick={startAdd}
           disabled={loading || Boolean(loadError) || saving}
-          className="glow-on-hover rounded-full px-5 py-2.5 text-sm font-semibold disabled:opacity-50"
+          className="min-h-11 glow-on-hover rounded-full px-5 py-2.5 text-sm font-semibold disabled:opacity-50 focus-visible:outline focus-visible:outline-2"
           style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
         >
           + Add Team Member
@@ -124,7 +127,7 @@ export default function AdminTeam() {
       {loadError && (
         <div role="alert" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'rgba(248,113,113,0.12)', color: 'var(--color-destructive)' }}>
           <p>{loadError}</p>
-          <button type="button" onClick={() => setLoadAttempt((attempt) => attempt + 1)} className="mt-2 font-semibold underline">
+          <button type="button" onClick={() => setLoadAttempt((attempt) => attempt + 1)} className="min-h-11 px-2 mt-2 font-semibold underline focus-visible:outline focus-visible:outline-2">
             Retry
           </button>
         </div>
@@ -142,7 +145,7 @@ export default function AdminTeam() {
           No team members have been added.
         </div>
       ) : !loadError && (
-        <div className="glass rounded-xl overflow-x-auto">
+        <div role="region" aria-label="Team list; scroll horizontally to see every column" tabIndex={0} className="glass rounded-xl overflow-x-auto focus-visible:outline focus-visible:outline-2">
           <table className="w-full text-sm min-w-[560px]">
             <thead className="text-left" style={{ backgroundColor: 'var(--color-muted)' }}>
               <tr>
@@ -158,11 +161,11 @@ export default function AdminTeam() {
                   <td className="px-4 py-3 text-muted-foreground">{member.designation}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-4 whitespace-nowrap">
-                      <button type="button" onClick={() => startEdit(member)} disabled={saving} className="hover:underline disabled:opacity-50" style={{ color: 'var(--color-primary)' }}>
+                      <button type="button" onClick={() => startEdit(member)} disabled={saving} aria-label={`Edit ${member.name}`} className="min-h-11 px-2 hover:underline disabled:opacity-50" style={{ color: 'var(--color-primary)' }}>
                         Edit
                       </button>
-                      <button type="button" onClick={() => setConfirmDelete(member)} disabled={saving} className="hover:underline disabled:opacity-50" style={{ color: 'var(--color-destructive)' }}>
-                        Delete
+                      <button type="button" onClick={() => setConfirmArchive(member)} disabled={saving} aria-label={`Archive ${member.name}`} className="min-h-11 px-2 hover:underline disabled:opacity-50" style={{ color: 'var(--color-destructive)' }}>
+                        Archive
                       </button>
                     </div>
                   </td>
@@ -174,15 +177,16 @@ export default function AdminTeam() {
       )}
 
       {draft && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={draft.id ? 'Edit team member' : 'Add team member'}
-          className="fixed inset-0 z-50 bg-slate-900/30 flex items-center justify-center p-4"
-          onClick={() => !saving && setDraft(null)}
+        <AccessibleDialog
+          onClose={() => !saving && setDraft(null)}
+          labelledBy="team-member-dialog-title"
+          fallbackFocusRef={headingRef}
+          closeOnEscape={!saving}
+          closeOnBackdrop={!saving}
+          className="glass rounded-xl p-6 max-w-lg w-full space-y-4"
         >
-          <form className="glass rounded-xl p-6 max-w-lg w-full space-y-4" onSubmit={saveMember} onClick={(event) => event.stopPropagation()}>
-            <h2 className="font-display text-xl font-bold">{draft.id ? 'Edit Team Member' : 'Add Team Member'}</h2>
+          <form onSubmit={saveMember} className="space-y-4">
+            <h2 id="team-member-dialog-title" className="font-display text-xl font-bold">{draft.id ? 'Edit Team Member' : 'Add Team Member'}</h2>
             {saveError && (
               <div role="alert" className="rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'rgba(248,113,113,0.12)', color: 'var(--color-destructive)' }}>
                 {saveError}
@@ -192,7 +196,6 @@ export default function AdminTeam() {
               <label htmlFor="team-name" className="block text-sm font-medium mb-1">Name</label>
               <input
                 id="team-name"
-                autoFocus
                 required
                 maxLength={200}
                 className={inputClass}
@@ -214,40 +217,40 @@ export default function AdminTeam() {
               />
             </div>
             <div className="flex justify-end gap-3 pt-2">
-              <button type="button" onClick={() => setDraft(null)} disabled={saving} className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50">
+              <button type="button" onClick={() => setDraft(null)} disabled={saving} className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50">
                 Cancel
               </button>
-              <button type="submit" disabled={saving} className="rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}>
+              <button type="submit" disabled={saving} className="min-h-11 rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}>
                 {saving ? 'Saving…' : 'Save Member'}
               </button>
             </div>
           </form>
-        </div>
+        </AccessibleDialog>
       )}
 
-      {confirmDelete && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Confirm team member deletion"
-          className="fixed inset-0 z-50 bg-slate-900/30 flex items-center justify-center p-4"
-          onClick={() => !saving && setConfirmDelete(null)}
+      {confirmArchive && (
+        <AccessibleDialog
+          onClose={() => !saving && setConfirmArchive(null)}
+          labelledBy="archive-team-member-title"
+          describedBy="archive-team-member-description"
+          fallbackFocusRef={headingRef}
+          closeOnEscape={!saving}
+          closeOnBackdrop={!saving}
+          className="glass rounded-xl p-6 max-w-sm w-full"
         >
-          <div className="glass rounded-xl p-6 max-w-sm w-full" onClick={(event) => event.stopPropagation()}>
-            <h2 className="font-display text-lg font-bold mb-2">Delete this team member?</h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              <span className="font-semibold text-foreground">{confirmDelete.name}</span> will be removed from the public Team list.
+            <h2 id="archive-team-member-title" className="font-display text-lg font-bold mb-2">Archive this team member?</h2>
+            <p id="archive-team-member-description" className="text-sm text-muted-foreground mb-6">
+              <span className="font-semibold text-foreground">{confirmArchive.name}</span> will be removed from the public Team list. You can restore this member from Archive.
             </p>
             <div className="flex justify-end gap-3">
-              <button type="button" onClick={() => setConfirmDelete(null)} disabled={saving} className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50">
+              <button type="button" onClick={() => setConfirmArchive(null)} disabled={saving} className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50">
                 Cancel
               </button>
-              <button type="button" onClick={() => deleteMember(confirmDelete)} disabled={saving} className="rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}>
-                {saving ? 'Deleting…' : 'Delete'}
+              <button type="button" onClick={() => archiveMember(confirmArchive)} disabled={saving} className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}>
+                {saving ? 'Archiving…' : 'Archive'}
               </button>
             </div>
-          </div>
-        </div>
+        </AccessibleDialog>
       )}
     </div>
   )

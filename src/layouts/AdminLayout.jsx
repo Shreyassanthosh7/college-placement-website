@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useAdminRecentCounts } from '../hooks/useAdminRecentCounts'
@@ -8,8 +8,10 @@ const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: GridIcon },
   { to: '/admin/companies', label: 'Companies', icon: BriefcaseIcon, badgeKey: 'companies' },
   { to: '/admin/drives', label: 'Placement Drives', icon: CalendarIcon, badgeKey: 'drives' },
+  { to: '/admin/placements', label: 'Placements', icon: UsersIcon },
   { to: '/admin/announcements', label: 'Announcements', icon: MegaphoneIcon, badgeKey: 'announcements' },
   { to: '/admin/team', label: 'Team', icon: UsersIcon },
+  { to: '/admin/archive', label: 'Archive', icon: ArchiveIcon },
   { to: '/admin/settings', label: 'Settings', icon: GearIcon },
 ]
 
@@ -17,6 +19,74 @@ export default function AdminLayout() {
   const { profile, firebaseUser, signOut } = useAuth()
   const { counts: recentCounts } = useAdminRecentCounts()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const menuButtonRef = useRef(null)
+  const drawerRef = useRef(null)
+
+  useEffect(() => {
+    const wideScreen = window.matchMedia('(min-width: 768px)')
+    const closeOnWideScreen = (event) => {
+      if (event.matches) setMobileOpen(false)
+    }
+    wideScreen.addEventListener('change', closeOnWideScreen)
+    return () => wideScreen.removeEventListener('change', closeOnWideScreen)
+  }, [])
+
+  useEffect(() => {
+    if (!mobileOpen || window.matchMedia('(min-width: 768px)').matches) return undefined
+
+    const previousFocus = document.activeElement
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const focusable = () => Array.from(drawerRef.current?.querySelectorAll(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    ) || []).filter((element) => element.getClientRects().length > 0)
+    const frame = window.requestAnimationFrame(() => {
+      const closeButton = drawerRef.current?.querySelector('[data-drawer-close]')
+      ;(closeButton || focusable()[0])?.focus()
+    })
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setMobileOpen(false)
+        return
+      }
+      if (event.key !== 'Tab') return
+      const elements = focusable()
+      if (elements.length === 0) {
+        event.preventDefault()
+        drawerRef.current?.focus()
+        return
+      }
+      const first = elements[0]
+      const last = elements[elements.length - 1]
+      if (!drawerRef.current?.contains(document.activeElement)) {
+        event.preventDefault()
+        ;(event.shiftKey ? last : first).focus()
+        return
+      }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === drawerRef.current)) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousOverflow
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) {
+        previousFocus.focus({ preventScroll: true })
+      } else {
+        menuButtonRef.current?.focus({ preventScroll: true })
+      }
+    }
+  }, [mobileOpen])
 
   return (
     <div className="min-h-screen md:flex" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -33,11 +103,13 @@ export default function AdminLayout() {
           <span className="font-display font-semibold text-sm truncate">Placement Cell</span>
         </div>
         <button
+          ref={menuButtonRef}
           type="button"
           onClick={() => setMobileOpen(true)}
           aria-label="Open admin menu"
+          aria-controls="admin-mobile-drawer"
           aria-expanded={mobileOpen}
-          className="p-2 rounded-md hover:bg-white/40"
+          className="min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-white/40 focus-visible:outline focus-visible:outline-2"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
@@ -59,9 +131,15 @@ export default function AdminLayout() {
           until opened). Same content either way, just different
           positioning, so there's only one nav to keep in sync. */}
       <aside
+        ref={drawerRef}
+        id="admin-mobile-drawer"
+        role={mobileOpen ? 'dialog' : undefined}
+        aria-modal={mobileOpen ? 'true' : undefined}
+        aria-label={mobileOpen ? 'Admin navigation' : undefined}
+        tabIndex={mobileOpen ? -1 : undefined}
         className={`fixed md:static inset-y-0 left-0 z-50 w-64 shrink-0 glass border-r flex flex-col
           transition-transform duration-300 md:translate-x-0
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          ${mobileOpen ? 'translate-x-0 visible' : '-translate-x-full invisible md:visible'}`}
         style={{ borderColor: 'var(--color-border)' }}
       >
         <div className="flex items-center justify-between gap-3 px-5 py-5">
@@ -74,10 +152,11 @@ export default function AdminLayout() {
           </div>
           {/* Close button, mobile drawer mode only */}
           <button
+            data-drawer-close
             type="button"
             onClick={() => setMobileOpen(false)}
             aria-label="Close admin menu"
-            className="md:hidden p-1.5 rounded-md hover:bg-white/40 shrink-0"
+            className="md:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-white/40 shrink-0 focus-visible:outline focus-visible:outline-2"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
@@ -94,7 +173,7 @@ export default function AdminLayout() {
                 to={to}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                  `flex items-center gap-3 px-3 min-h-11 rounded-lg text-sm font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 ${
                     isActive ? '' : 'text-foreground/80 hover:bg-white/5'
                   }`
                 }
@@ -134,7 +213,7 @@ export default function AdminLayout() {
           <button
             type="button"
             onClick={signOut}
-            className="btn-outline-gold w-full rounded-full text-xs font-semibold py-2"
+            className="btn-outline-gold w-full min-h-11 rounded-full text-xs font-semibold py-2 focus-visible:outline focus-visible:outline-2"
           >
             Log Out
           </button>
@@ -143,7 +222,7 @@ export default function AdminLayout() {
 
       {/* Content — top padding on mobile clears the fixed top bar; back
           to the normal padding on desktop where there's no top bar. */}
-      <main className="flex-1 min-w-0 p-6 pt-20 sm:p-8 md:pt-8">
+      <main aria-hidden={mobileOpen ? 'true' : undefined} inert={mobileOpen} className="flex-1 min-w-0 p-6 pt-20 sm:p-8 md:pt-8">
         <Outlet />
       </main>
     </div>
@@ -194,6 +273,13 @@ function UsersIcon(props) {
       <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round" />
       <circle cx="10" cy="7" r="4" />
       <path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" />
+    </svg>
+  )
+}
+function ArchiveIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M4 7h16v13H4zM3 3h18v4H3zM9 12h6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

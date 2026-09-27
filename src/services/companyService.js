@@ -1,4 +1,4 @@
-import { getAll, getOne, createDoc, updateDocById, deleteDocById, subscribeToCollection, where, orderBy } from '../firebase/firestore'
+import { getAll, getOne, createDoc, updateDocById, subscribeToCollection, where, orderBy } from '../firebase/firestore'
 
 const COLLECTION = 'companies'
 
@@ -52,10 +52,6 @@ export function createCompany(data) {
 
 export function updateCompany(id, data) {
   return updateDocById(COLLECTION, id, data)
-}
-
-export function deleteCompany(id) {
-  return deleteDocById(COLLECTION, id)
 }
 
 export function setCompanyStatus(id, status) {

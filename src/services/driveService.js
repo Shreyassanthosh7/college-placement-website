@@ -1,4 +1,4 @@
-import { getAll, getOne, createDoc, updateDocById, deleteDocById, subscribeToCollection, where, orderBy } from '../firebase/firestore'
+import { getAll, getOne, createDoc, updateDocById, subscribeToCollection, where, orderBy } from '../firebase/firestore'
 
 const COLLECTION = 'placementDrives'
 
@@ -48,10 +48,6 @@ export function createDrive(data) {
 
 export function updateDrive(id, data) {
   return updateDocById(COLLECTION, id, data)
-}
-
-export function deleteDrive(id) {
-  return deleteDocById(COLLECTION, id)
 }
 
 export function setDriveStatus(id, status) {

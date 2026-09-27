@@ -5,7 +5,6 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
   setDoc,
   onSnapshot,
   serverTimestamp,
@@ -60,10 +59,6 @@ export function updateDocById(collectionName, id, data) {
     ...data,
     updatedAt: serverTimestamp(),
   })
-}
-
-export function deleteDocById(collectionName, id) {
-  return deleteDoc(getDocRef(collectionName, id))
 }
 
 /**

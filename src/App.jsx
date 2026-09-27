@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import PublicLayout from './layouts/PublicLayout'
 import { NotificationProvider } from './context/NotificationContext'
 import { SettingsProvider } from './context/SettingsContext'
@@ -24,6 +24,8 @@ import AddAnnouncement from './admin/AddAnnouncement'
 import EditAnnouncement from './admin/EditAnnouncement'
 import AdminSettings from './admin/AdminSettings'
 import AdminTeam from './admin/AdminTeam'
+import AdminPlacements from './admin/AdminPlacements'
+import AdminArchive from './admin/AdminArchive'
 import AdminLayout from './layouts/AdminLayout'
 import ProtectedRoute from './routes/ProtectedRoute'
 
@@ -55,6 +57,7 @@ function App() {
           </ProtectedRoute>
         }
       >
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="companies" element={<AdminCompanies />} />
         <Route path="companies/add" element={<AddCompany />} />
@@ -66,6 +69,8 @@ function App() {
         <Route path="announcements/add" element={<AddAnnouncement />} />
         <Route path="announcements/edit/:id" element={<EditAnnouncement />} />
         <Route path="team" element={<AdminTeam />} />
+        <Route path="placements" element={<AdminPlacements />} />
+        <Route path="archive" element={<AdminArchive />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
     </Routes>

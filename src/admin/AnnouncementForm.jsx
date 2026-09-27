@@ -3,7 +3,7 @@ import { validateAnnouncementForm } from '../utils/validators'
 import { EMPTY_ANNOUNCEMENT_FORM, formValuesToAnnouncement } from './announcementFormUtils'
 
 const inputClass =
-  'w-full rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
+  'w-full min-h-11 rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
 const labelClass = 'block text-sm font-medium mb-1'
 const errorClass = 'text-xs mt-1'
 

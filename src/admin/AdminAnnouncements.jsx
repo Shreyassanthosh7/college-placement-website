@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAllAnnouncements, deleteAnnouncement, setAnnouncementStatus } from '../services/announcementService'
+import { getAllAnnouncements, setAnnouncementStatus } from '../services/announcementService'
+import { archiveRecord } from '../services/archiveService'
 import Badge from '../components/Badge'
 import EmptyState from '../components/EmptyState'
+import AccessibleDialog from '../components/AccessibleDialog'
 import { formatDate } from '../utils/formatDate'
 
 export default function AdminAnnouncements() {
@@ -10,7 +12,8 @@ export default function AdminAnnouncements() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [pendingAction, setPendingAction] = useState(null)
-  const [confirmDelete, setConfirmDelete] = useState(null)
+  const [confirmArchive, setConfirmArchive] = useState(null)
+  const headingRef = useRef(null)
 
   async function load() {
     setLoading(true)
@@ -42,14 +45,15 @@ export default function AdminAnnouncements() {
     }
   }
 
-  async function handleDelete(announcement) {
+  async function handleArchive(announcement) {
     setPendingAction(announcement.id)
     try {
-      await deleteAnnouncement(announcement.id)
+      await archiveRecord('announcement', announcement.id)
       setAnnouncements((list) => list.filter((a) => a.id !== announcement.id))
-      setConfirmDelete(null)
+      setConfirmArchive(null)
     } catch {
-      setError('Unable to delete announcement. Please try again.')
+      setError('Unable to archive announcement. Please try again.')
+      setConfirmArchive(null)
     } finally {
       setPendingAction(null)
     }
@@ -58,17 +62,17 @@ export default function AdminAnnouncements() {
   return (
     <div>
       <div className="flex items-center justify-between gap-4 mb-1 flex-wrap">
-        <h1 className="font-display text-2xl font-bold">Announcements</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="font-display text-2xl font-bold focus-visible:outline focus-visible:outline-2">Announcements</h1>
         <Link
           to="/admin/announcements/add"
-          className="glow-on-hover rounded-full px-5 py-2.5 text-sm font-semibold"
+          className="min-h-11 glow-on-hover rounded-full px-5 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2"
           style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
         >
           + Add Announcement
         </Link>
       </div>
       <p className="text-muted-foreground mb-6">
-        Post new updates and deadlines, or remove old ones.
+        Post new updates and deadlines, or archive old ones.
       </p>
 
       {error && (
@@ -82,7 +86,7 @@ export default function AdminAnnouncements() {
       ) : announcements.length === 0 ? (
         <EmptyState title="No announcements yet." description="Add your first announcement to get started." />
       ) : (
-        <div className="glass rounded-xl overflow-x-auto">
+        <div role="region" aria-label="Announcements list; scroll horizontally to see every column" tabIndex={0} className="glass rounded-xl overflow-x-auto focus-visible:outline focus-visible:outline-2">
           <table className="w-full text-sm min-w-[640px]">
             <thead className="text-left" style={{ backgroundColor: 'var(--color-muted)' }}>
               <tr>
@@ -100,26 +104,28 @@ export default function AdminAnnouncements() {
                   <td className="px-4 py-3"><Badge status={a.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3 whitespace-nowrap">
-                      <Link to={`/admin/announcements/edit/${a.id}`} className="hover:underline" style={{ color: 'var(--color-primary)' }}>
+                      <Link to={`/admin/announcements/edit/${a.id}`} aria-label={`Edit ${a.title}`} className="inline-flex min-h-11 items-center px-2 hover:underline focus-visible:outline focus-visible:outline-2" style={{ color: 'var(--color-primary)' }}>
                         Edit
                       </Link>
                       <button
                         type="button"
                         onClick={() => handleTogglePublish(a)}
                         disabled={pendingAction === a.id}
-                        className="hover:underline disabled:opacity-50"
+                        aria-label={`${a.status === 'published' ? 'Unpublish' : 'Publish'} ${a.title}`}
+                        className="min-h-11 px-2 hover:underline disabled:opacity-50 focus-visible:outline focus-visible:outline-2"
                         style={{ color: 'var(--color-primary)' }}
                       >
                         {a.status === 'published' ? 'Unpublish' : 'Publish'}
                       </button>
                       <button
                         type="button"
-                        onClick={() => setConfirmDelete(a)}
+                        onClick={() => setConfirmArchive(a)}
                         disabled={pendingAction === a.id}
-                        className="hover:underline disabled:opacity-50"
+                        aria-label={`Archive ${a.title}`}
+                        className="min-h-11 px-2 hover:underline disabled:opacity-50 focus-visible:outline focus-visible:outline-2"
                         style={{ color: 'var(--color-destructive)' }}
                       >
-                        Delete
+                        Archive
                       </button>
                     </div>
                   </td>
@@ -130,36 +136,34 @@ export default function AdminAnnouncements() {
         </div>
       )}
 
-      {confirmDelete && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Confirm delete"
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-          onClick={() => setConfirmDelete(null)}
+      {confirmArchive && (
+        <AccessibleDialog
+          onClose={() => setConfirmArchive(null)}
+          labelledBy="archive-announcement-title"
+          describedBy="archive-announcement-description"
+          fallbackFocusRef={headingRef}
+          closeOnEscape={!pendingAction}
+          className="glass rounded-xl p-6 max-w-sm w-full"
         >
-          <div className="glass rounded-xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h2 className="font-display text-lg font-bold mb-2">Delete this announcement?</h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              Are you sure you want to delete <span className="font-semibold text-foreground">{confirmDelete.title}</span>?
-              This action cannot be undone.
+            <h2 id="archive-announcement-title" className="font-display text-lg font-bold mb-2">Archive this announcement?</h2>
+            <p id="archive-announcement-description" className="text-sm text-muted-foreground mb-6">
+              <span className="font-semibold text-foreground">{confirmArchive.title}</span> will be removed from the public site. You can restore it from Archive.
             </p>
             <div className="flex justify-end gap-3">
-              <button type="button" onClick={() => setConfirmDelete(null)} className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
+              <button type="button" onClick={() => setConfirmArchive(null)} disabled={pendingAction === confirmArchive.id} className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50">
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={() => handleDelete(confirmDelete)}
-                disabled={pendingAction === confirmDelete.id}
-                className="rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60"
+                onClick={() => handleArchive(confirmArchive)}
+                disabled={pendingAction === confirmArchive.id}
+                className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60"
                 style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}
               >
-                {pendingAction === confirmDelete.id ? 'Deleting…' : 'Delete'}
+                {pendingAction === confirmArchive.id ? 'Archiving…' : 'Archive'}
               </button>
             </div>
-          </div>
-        </div>
+        </AccessibleDialog>
       )}
     </div>
   )

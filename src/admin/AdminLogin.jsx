@@ -13,15 +13,17 @@ export default function AdminLogin() {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState(null)
 
-  // Already confirmed as an admin — redirect. This is intentionally the
-  // ONLY place navigation to the dashboard happens: it's driven by the
-  // actual isAdmin value from context, not by "signIn() resolved" timing.
+  // Wait for the admin role lookup before redirecting. Preserve a requested
+  // admin page, but use the dashboard when sign-in began at /admin itself.
   // Navigating imperatively right after signIn() would race against the
   // async users/{uid} role lookup in AuthContext and could send someone to
   // /admin/dashboard before authorization was confirmed, only for
   // ProtectedRoute to immediately bounce them back here.
   if (status === 'signed-in' && isAdmin) {
-    const redirectTo = location.state?.from?.pathname || '/admin/dashboard'
+    const requestedPath = location.state?.from?.pathname
+    const redirectTo = requestedPath && requestedPath !== '/admin'
+      ? requestedPath
+      : '/admin/dashboard'
     return <Navigate to={redirectTo} replace />
   }
 
