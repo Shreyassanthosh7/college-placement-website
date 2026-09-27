@@ -34,6 +34,14 @@ export const mockSettings = {
   },
   collegeWebsite: 'https://www.tndalu.ac.in',
   soelPage: 'https://www.tndalu.ac.in/school-of-excellence-in-law',
+  studentsPlaced: null,
+  teamMembers: [
+    {
+      id: 'director-soel',
+      name: 'Prof. (Dr.) Ranjit Oommen Abraham',
+      designation: 'Director, School of Excellence in Law',
+    },
+  ],
 }
 
 // ---- companies ----------------------------------------------------------

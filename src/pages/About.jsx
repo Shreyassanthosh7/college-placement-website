@@ -3,6 +3,7 @@ import Reveal from '../components/Reveal'
 
 export default function About() {
   const { settings } = useSettings()
+  const teamMembers = Array.isArray(settings.teamMembers) ? settings.teamMembers : []
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
@@ -47,30 +48,29 @@ export default function About() {
         </Reveal>
       </section>
 
-      <Reveal as="section">
-        <h2 className="font-display text-xl font-bold mb-2">Placement Cell Team</h2>
-        <div className="glass rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="text-left" style={{ backgroundColor: 'var(--color-muted)' }}>
-              <tr>
-                <th className="px-4 py-2 font-semibold">Name</th>
-                <th className="px-4 py-2 font-semibold">Designation</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-t border-border">
-                <td className="px-4 py-2">Prof. (Dr.) Ranjit Oommen Abraham</td>
-                <td className="px-4 py-2">Director, School of Excellence in Law</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Only the Director is publicly listed by the University at this time. Additional
-          faculty coordinators and student committee members can be added here by an admin
-          once the Team feature is wired up in a later phase.
-        </p>
-      </Reveal>
+      {teamMembers.length > 0 && (
+        <Reveal as="section">
+          <h2 className="font-display text-xl font-bold mb-2">Placement Cell Team</h2>
+          <div className="glass rounded-xl overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
+              <thead className="text-left" style={{ backgroundColor: 'var(--color-muted)' }}>
+                <tr>
+                  <th className="px-4 py-2 font-semibold">Name</th>
+                  <th className="px-4 py-2 font-semibold">Designation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teamMembers.map((member) => (
+                  <tr key={member.id || `${member.name}-${member.designation}`} className="border-t border-border">
+                    <td className="px-4 py-2">{member.name}</td>
+                    <td className="px-4 py-2">{member.designation}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Reveal>
+      )}
     </div>
   )
 }

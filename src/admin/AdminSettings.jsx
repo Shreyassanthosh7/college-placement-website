@@ -178,6 +178,26 @@ export default function AdminSettings() {
         </section>
 
         <section className="glass rounded-xl p-6">
+          <h2 className="font-display text-lg font-bold mb-4">Homepage Statistics</h2>
+          <Field label="Students Placed">
+            <input
+              type="number"
+              min="0"
+              step="1"
+              inputMode="numeric"
+              className={inputClass}
+              value={form.studentsPlaced ?? ''}
+              onChange={(e) => update('studentsPlaced', e.target.value === '' ? null : Number(e.target.value))}
+              disabled={saving}
+              placeholder="Leave blank to show —"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              This value appears on the Home page. Company and drive counts update from their listings.
+            </p>
+          </Field>
+        </section>
+
+        <section className="glass rounded-xl p-6">
           <h2 className="font-display text-lg font-bold mb-4">Links &amp; Social Media</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="College Website">

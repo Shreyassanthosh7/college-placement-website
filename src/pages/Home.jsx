@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import CompanyCard from '../components/CompanyCard'
 import EmptyState from '../components/EmptyState'
 import Reveal from '../components/Reveal'
-import AuroraBackground from '../components/AuroraBackground'
 import CountUp from '../components/CountUp'
 import NewContentToast from '../components/NewContentToast'
 import { useNotifications } from '../hooks/useNotifications'
@@ -26,7 +25,6 @@ export default function Home() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <AuroraBackground />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 text-center">
           <Reveal>
             <span
@@ -63,16 +61,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats — computed from live Firestore data, not invented numbers.
-          "Students Placed" has no honest source yet (no placements
-          collection exists), so it stays an empty dash rather than a guess. */}
+      {/* Listing counts come from live data; Students Placed is set by an admin
+          in Settings because this project has no placements collection yet. */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-6 -mt-4 relative z-10">
         <Reveal stagger className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'Companies', value: loading ? '' : companies.length },
             { label: 'Active Opportunities', value: loading ? '' : activeCompanies.length },
             { label: 'Upcoming Drives', value: loading ? '' : drives.length },
-            { label: 'Students Placed', value: '—' },
+            { label: 'Students Placed', value: settings.studentsPlaced ?? '—' },
           ].map((stat) => (
             <div key={stat.label} className="glass glow-on-hover rounded-xl p-5 text-center">
               <p className="font-display text-3xl font-bold" style={{ color: 'var(--color-primary)' }}>
@@ -114,11 +111,6 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
         <Reveal>
           <div className="glass glow-on-hover rounded-xl p-8 relative overflow-hidden">
-            <div
-              className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-40"
-              style={{ background: 'var(--color-primary)' }}
-              aria-hidden="true"
-            />
             <h2 className="font-display text-xl font-bold mb-2 relative">About the Placement Cell</h2>
             <p className="text-muted-foreground relative">{settings.aboutText}</p>
             <Link to="/about" className="inline-block mt-4 text-sm font-semibold hover:underline relative" style={{ color: 'var(--color-primary)' }}>

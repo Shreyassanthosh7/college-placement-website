@@ -23,6 +23,7 @@ import AdminAnnouncements from './admin/AdminAnnouncements'
 import AddAnnouncement from './admin/AddAnnouncement'
 import EditAnnouncement from './admin/EditAnnouncement'
 import AdminSettings from './admin/AdminSettings'
+import AdminTeam from './admin/AdminTeam'
 import AdminLayout from './layouts/AdminLayout'
 import ProtectedRoute from './routes/ProtectedRoute'
 
@@ -64,6 +65,7 @@ function App() {
         <Route path="announcements" element={<AdminAnnouncements />} />
         <Route path="announcements/add" element={<AddAnnouncement />} />
         <Route path="announcements/edit/:id" element={<EditAnnouncement />} />
+        <Route path="team" element={<AdminTeam />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
     </Routes>
