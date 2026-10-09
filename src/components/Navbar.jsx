@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 import logo from '../assets/logo.png'
 import NotificationBell from './NotificationBell'
 import ThemeToggle from './ThemeToggle'
+import { GooeyNav } from './ui/gooey-nav'
 import { useSettings } from '../hooks/useSettings'
 
 const links = [
@@ -19,13 +20,6 @@ export default function Navbar() {
   const { settings } = useSettings()
   const placementCellName = settings.placementCellName?.trim() || 'Placement Cell'
   const collegeName = settings.collegeName?.trim()
-
-  const linkClass = ({ isActive }) =>
-    `relative px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-      isActive
-        ? 'text-primary'
-        : 'text-foreground/80 hover:text-foreground'
-    }`
 
   return (
     <header className="glass sticky top-0 z-40">
@@ -51,25 +45,12 @@ export default function Navbar() {
           </NavLink>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
-            {links.map((l) => (
-              <NavLink key={l.to} to={l.to} className={linkClass} end={l.to === '/'}>
-                {({ isActive }) => (
-                  <>
-                    {l.label}
-                    <span
-                      className="absolute left-3 right-3 -bottom-0.5 h-0.5 rounded-full transition-transform duration-300 origin-left"
-                      style={{
-                        background: 'var(--color-primary)',
-                        transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
-                      }}
-                      aria-hidden="true"
-                    />
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
+          <GooeyNav
+            className="hidden lg:inline-block"
+            aria-label="Primary navigation"
+            items={links.map(({ to, label }) => ({ href: to, label }))}
+            size="sm"
+          />
 
           {/* Bell is always visible (desktop + mobile) — it's the fix for
               "even if students miss the popup": the badge persists across

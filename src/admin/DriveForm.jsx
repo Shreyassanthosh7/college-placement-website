@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { validateDriveForm } from '../utils/validators'
 import { EMPTY_DRIVE_FORM, formValuesToDrive } from './driveFormUtils'
 import { getAllCompanies } from '../services/companyService'
+import AdaptiveSelect from '../components/ui/AdaptiveSelect'
 
 const inputClass =
   'w-full min-h-11 rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
@@ -102,17 +103,16 @@ export default function DriveForm({ initialValues, onSubmit, onCancel, submittin
         <h2 className="font-display text-lg font-bold mb-4">Drive Details</h2>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Company *" error={errors.companyId}>
-            <select
-              className={inputClass}
+            <AdaptiveSelect
               value={form.companyId}
-              onChange={(e) => handleCompanyChange(e.target.value)}
+              onChange={handleCompanyChange}
               disabled={submitting}
-            >
-              <option value="">Select a company…</option>
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+              className={`${inputClass} justify-between`}
+              containerClassName="relative w-full"
+              ariaLabel="Company"
+              placeholder="Select a company…"
+              options={companies.map((company) => ({ value: company.id, label: company.name }))}
+            />
           </Field>
           <Field label="Role *" error={errors.role}>
             <input className={inputClass} value={form.role} onChange={(e) => update('role', e.target.value)} disabled={submitting} />

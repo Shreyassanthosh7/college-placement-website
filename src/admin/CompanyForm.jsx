@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { validateCompanyForm } from '../utils/validators'
 import { EMPTY_FORM, formValuesToCompany } from './companyFormUtils'
+import AdaptiveSelect from '../components/ui/AdaptiveSelect'
 
 const WORK_MODES = ['On-site', 'Remote', 'Hybrid']
 const STATUSES = [
@@ -115,9 +116,15 @@ export default function CompanyForm({ initialValues, onSubmit, onCancel, submitt
             <input className={inputClass} value={form.location} onChange={(e) => update('location', e.target.value)} disabled={submitting} />
           </Field>
           <Field label="Work Mode">
-            <select className={inputClass} value={form.workMode} onChange={(e) => update('workMode', e.target.value)} disabled={submitting}>
-              {WORK_MODES.map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
+            <AdaptiveSelect
+              value={form.workMode}
+              onChange={(value) => update('workMode', value)}
+              disabled={submitting}
+              className={`${inputClass} justify-between`}
+              containerClassName="relative w-full"
+              ariaLabel="Work Mode"
+              options={WORK_MODES.map((mode) => ({ value: mode, label: mode }))}
+            />
           </Field>
         </div>
       </section>

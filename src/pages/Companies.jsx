@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import CompanyCard from '../components/CompanyCard'
 import EmptyState from '../components/EmptyState'
 import Reveal from '../components/Reveal'
+import AdaptiveSelect from '../components/ui/AdaptiveSelect'
 import { useNotifications } from '../hooks/useNotifications'
 
 const SORT_OPTIONS = [
@@ -81,36 +82,56 @@ export default function Companies() {
           style={{ outlineColor: 'var(--color-ring)' }}
         />
 
-        <label className="sr-only" htmlFor="filter-department">Filter by department</label>
-        <select id="filter-department" value={department} onChange={(e) => setDepartment(e.target.value)} className={selectClass} style={{ outlineColor: 'var(--color-ring)' }}>
-          <option value="all">All departments</option>
-          {departments.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
+        <label id="filter-department-label" className="sr-only">Filter by department</label>
+        <AdaptiveSelect
+          id="filter-department"
+          ariaLabelledBy="filter-department-label"
+          value={department}
+          onChange={setDepartment}
+          className={selectClass}
+          options={[
+            { value: 'all', label: 'All departments' },
+            ...departments.map((d) => ({ value: d, label: d })),
+          ]}
+        />
 
-        <label className="sr-only" htmlFor="filter-location">Filter by location</label>
-        <select id="filter-location" value={location} onChange={(e) => setLocation(e.target.value)} className={selectClass} style={{ outlineColor: 'var(--color-ring)' }}>
-          <option value="all">All locations</option>
-          {locations.map((l) => (
-            <option key={l} value={l}>{l}</option>
-          ))}
-        </select>
+        <label id="filter-location-label" className="sr-only">Filter by location</label>
+        <AdaptiveSelect
+          id="filter-location"
+          ariaLabelledBy="filter-location-label"
+          value={location}
+          onChange={setLocation}
+          className={selectClass}
+          options={[
+            { value: 'all', label: 'All locations' },
+            ...locations.map((l) => ({ value: l, label: l })),
+          ]}
+        />
 
-        <label className="sr-only" htmlFor="filter-status">Filter by status</label>
-        <select id="filter-status" value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass} style={{ outlineColor: 'var(--color-ring)' }}>
-          <option value="all">All statuses</option>
-          <option value="active">Active</option>
-          <option value="upcoming">Upcoming</option>
-          <option value="closed">Closed</option>
-        </select>
+        <label id="filter-status-label" className="sr-only">Filter by status</label>
+        <AdaptiveSelect
+          id="filter-status"
+          ariaLabelledBy="filter-status-label"
+          value={status}
+          onChange={setStatus}
+          className={selectClass}
+          options={[
+            { value: 'all', label: 'All statuses' },
+            { value: 'active', label: 'Active' },
+            { value: 'upcoming', label: 'Upcoming' },
+            { value: 'closed', label: 'Closed' },
+          ]}
+        />
 
-        <label className="sr-only" htmlFor="sort-by">Sort by</label>
-        <select id="sort-by" value={sort} onChange={(e) => setSort(e.target.value)} className={selectClass} style={{ outlineColor: 'var(--color-ring)' }}>
-          {SORT_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>Sort: {o.label}</option>
-          ))}
-        </select>
+        <label id="sort-by-label" className="sr-only">Sort opportunities</label>
+        <AdaptiveSelect
+          id="sort-by"
+          ariaLabelledBy="sort-by-label"
+          value={sort}
+          onChange={setSort}
+          className={selectClass}
+          options={SORT_OPTIONS.map((o) => ({ value: o.value, label: `Sort: ${o.label}` }))}
+        />
       </div>
 
       {loading ? (
