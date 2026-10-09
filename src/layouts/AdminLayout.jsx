@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useAdminRecentCounts } from '../hooks/useAdminRecentCounts'
 import logo from '../assets/logo.png'
+import ThemeToggle from '../components/ThemeToggle'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: GridIcon },
@@ -102,19 +103,22 @@ export default function AdminLayout() {
           <img src={logo} alt="TNDALU seal" className="w-8 h-8 rounded-full object-contain shrink-0" />
           <span className="font-display font-semibold text-sm truncate">Placement Cell</span>
         </div>
-        <button
-          ref={menuButtonRef}
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open admin menu"
-          aria-controls="admin-mobile-drawer"
-          aria-expanded={mobileOpen}
-          className="min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-white/40 focus-visible:outline focus-visible:outline-2"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            ref={menuButtonRef}
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open admin menu"
+            aria-controls="admin-mobile-drawer"
+            aria-expanded={mobileOpen}
+            className="min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-foreground/5 focus-visible:outline focus-visible:outline-2"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Backdrop, mobile drawer mode only */}
@@ -156,7 +160,7 @@ export default function AdminLayout() {
             type="button"
             onClick={() => setMobileOpen(false)}
             aria-label="Close admin menu"
-            className="md:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-white/40 shrink-0 focus-visible:outline focus-visible:outline-2"
+            className="md:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-foreground/5 shrink-0 focus-visible:outline focus-visible:outline-2"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
@@ -174,7 +178,7 @@ export default function AdminLayout() {
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 min-h-11 rounded-lg text-sm font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 ${
-                    isActive ? '' : 'text-foreground/80 hover:bg-white/5'
+                    isActive ? '' : 'text-foreground/80 hover:bg-foreground/5'
                   }`
                 }
                 style={({ isActive }) =>
@@ -208,8 +212,13 @@ export default function AdminLayout() {
         </nav>
 
         <div className="px-5 py-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
-          <p className="text-xs text-muted-foreground truncate">{profile?.name || firebaseUser?.email}</p>
-          <p className="text-xs mb-3" style={{ color: 'var(--color-primary)' }}>Administrator</p>
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground truncate">{profile?.name || firebaseUser?.email}</p>
+              <p className="text-xs" style={{ color: 'var(--color-primary)' }}>Administrator</p>
+            </div>
+            <div className="hidden md:block"><ThemeToggle /></div>
+          </div>
           <button
             type="button"
             onClick={signOut}

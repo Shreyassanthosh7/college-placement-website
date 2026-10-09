@@ -10,7 +10,6 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
-import { mockSettings } from '../data/mockData'
 
 const ARCHIVE_COLLECTION = 'archive'
 const SETTINGS_REF = doc(db, 'settings', 'general')
@@ -26,7 +25,7 @@ function createArchiveRef() {
 }
 
 function getTeamMembers(settings) {
-  const members = Array.isArray(settings?.teamMembers) ? settings.teamMembers : mockSettings.teamMembers
+  const members = Array.isArray(settings?.teamMembers) ? settings.teamMembers : []
   return members.map((member, index) => ({
     id: member?.id || `team-member-${index + 1}`,
     name: typeof member?.name === 'string' ? member.name : '',

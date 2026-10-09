@@ -101,19 +101,25 @@ export function NotificationProvider({ children }) {
     }
   }, [])
 
-  function countNew(items, category) {
+  function getNewItems(items, category) {
     const baseline = lastSeen[category]
     // Never-visited-this-category-before: nothing counts as new — there's
     // no prior visit to compare against, and flagging an entire fresh
     // dataset as "new" would be meaningless noise for a first-time visitor.
-    if (!baseline) return 0
-    return items.filter((item) => item.createdAt?.toMillis && item.createdAt.toMillis() > baseline).length
+    if (!baseline) return []
+    return items.filter((item) => item.createdAt?.toMillis && item.createdAt.toMillis() > baseline)
+  }
+
+  const newItems = {
+    companies: getNewItems(companies, 'companies'),
+    drives: getNewItems(drives, 'drives'),
+    announcements: getNewItems(announcements, 'announcements'),
   }
 
   const newCounts = {
-    companies: countNew(companies, 'companies'),
-    drives: countNew(drives, 'drives'),
-    announcements: countNew(announcements, 'announcements'),
+    companies: newItems.companies.length,
+    drives: newItems.drives.length,
+    announcements: newItems.announcements.length,
   }
 
   const hasNew = !loading && (newCounts.companies > 0 || newCounts.drives > 0 || newCounts.announcements > 0)
@@ -137,7 +143,7 @@ export function NotificationProvider({ children }) {
     setLastSeen((prev) => ({ ...prev, [category]: timestamp }))
   }
 
-  const value = { companies, drives, announcements, loading, error, newCounts, hasNew, markCategorySeen }
+  const value = { companies, drives, announcements, loading, error, newItems, newCounts, hasNew, markCategorySeen }
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>
 }

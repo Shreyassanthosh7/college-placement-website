@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import logo from '../assets/logo.png'
 import NotificationBell from './NotificationBell'
+import ThemeToggle from './ThemeToggle'
 import { useSettings } from '../hooks/useSettings'
 
 const links = [
@@ -16,6 +17,8 @@ const links = [
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const { settings } = useSettings()
+  const placementCellName = settings.placementCellName?.trim() || 'Placement Cell'
+  const collegeName = settings.collegeName?.trim()
 
   const linkClass = ({ isActive }) =>
     `relative px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
@@ -37,18 +40,18 @@ export default function Navbar() {
               />
               <img
                 src={settings.logoUrl || logo}
-                alt={`${settings.collegeName} seal`}
+                alt={`${collegeName || placementCellName} logo`}
                 className="relative w-11 h-11 rounded-full object-contain"
               />
             </span>
             <div className="min-w-0">
-              <p className="font-display font-semibold leading-tight truncate">{settings.placementCellName}</p>
-              <p className="text-xs text-muted-foreground leading-tight truncate">{settings.collegeName}</p>
+              <p className="font-display font-semibold leading-tight truncate">{placementCellName}</p>
+              {collegeName && <p className="text-xs text-muted-foreground leading-tight truncate">{collegeName}</p>}
             </div>
           </NavLink>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1" aria-label="Primary">
+          <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} className={linkClass} end={l.to === '/'}>
                 {({ isActive }) => (
@@ -72,11 +75,12 @@ export default function Navbar() {
               "even if students miss the popup": the badge persists across
               every page, not just Home, until the bell is opened. */}
           <div className="flex items-center gap-1">
+            <div className="hidden lg:block"><ThemeToggle /></div>
             <NotificationBell />
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 rounded-md text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 cursor-pointer"
+              className="lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 cursor-pointer"
               style={{ outlineColor: 'var(--color-ring)' }}
               aria-expanded={open}
               aria-controls="mobile-nav"
@@ -96,7 +100,7 @@ export default function Navbar() {
 
         {/* Mobile nav panel */}
         {open && (
-          <nav id="mobile-nav" className="md:hidden pb-4 flex flex-col gap-1" aria-label="Primary mobile">
+          <nav id="mobile-nav" className="lg:hidden pb-4 flex flex-col gap-1" aria-label="Primary mobile">
             {links.map((l) => (
               <NavLink
                 key={l.to}
@@ -112,6 +116,9 @@ export default function Navbar() {
                 {l.label}
               </NavLink>
             ))}
+            <div className="mt-2 border-t border-border pt-3">
+              <ThemeToggle showLabel className="w-full justify-start rounded-lg px-3" />
+            </div>
           </nav>
         )}
       </div>

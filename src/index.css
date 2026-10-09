@@ -1,15 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
 
-
-/* Design tokens — sampled directly from the official Placement Cell seal
-   (navy #14263E, gold #D8B969). Light-blue pass, per direct request: light
-   blue as the page background, navy as the primary accent (buttons, links,
-   headings, borders) — grounded in the same brand colors as the earlier
-   dark theme, just flipped to a light base instead of a dark one. Gold is
-   kept only as a very small brand touch (the logo itself, the "active"
-   status pulse) rather than a dominant accent, since the ask was
-   specifically light blue + navy. */
+/* Placement Cell palette, with dark values swapped by the theme selector below. */
 @theme {
   --color-primary: #14263E;               /* navy — buttons, links, headings, borders */
   --color-primary-foreground: #FFFFFF;
@@ -26,11 +18,56 @@
   --color-border: #C7DCEF;
   --color-destructive: #DC2626;
   --color-destructive-foreground: #FFFFFF;
+  --color-success: #15803D;
+  --color-success-background: rgba(34,197,94,0.12);
   --color-ring: #14263E;
   --color-glow: #14263E33;
 
   --font-display: "EB Garamond", Garamond, Georgia, serif;
-  --font-body: "EB Garamond", Garamond, Georgia, serif;
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  --badge-active-bg: #E7F6EE;
+  --badge-active-fg: #0A7A44;
+  --badge-upcoming-bg: #EEF1F6;
+  --badge-upcoming-fg: #1E4FA0;
+  --badge-closed-bg: #F3E7E7;
+  --badge-closed-fg: #8A3B3B;
+  --badge-draft-bg: #F1F1F1;
+  --badge-draft-fg: #666666;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-primary: #A9C9F0;
+  --color-primary-foreground: #102039;
+  --color-secondary: #91B8E4;
+  --color-accent: #E3CB83;
+  --color-accent-foreground: #14263E;
+  --color-background: #0C1522;
+  --color-background-alt: #121F31;
+  --color-foreground: #E8EEF6;
+  --color-card: #17263A;
+  --color-card-foreground: #EDF3FA;
+  --color-muted: #21344D;
+  --color-muted-foreground: #B6C4D7;
+  --color-border: #344861;
+  --color-destructive: #FF8580;
+  --color-destructive-foreground: #2A1112;
+  --color-success: #72D6A0;
+  --color-success-background: rgba(34,197,94,0.16);
+  --color-ring: #A9C9F0;
+  --color-glow: #A9C9F033;
+  --badge-active-bg: #173B2C;
+  --badge-active-fg: #89E2AE;
+  --badge-upcoming-bg: #203550;
+  --badge-upcoming-fg: #B2CDF1;
+  --badge-closed-bg: #432B30;
+  --badge-closed-fg: #F1A7A5;
+  --badge-draft-bg: #2A384A;
+  --badge-draft-fg: #C4CFDE;
 }
 
 * { scrollbar-color: var(--color-border) var(--color-background); }
@@ -39,14 +76,41 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   letter-spacing: -0.01em;
+  line-height: 1.12;
 }
 
-::selection { background: var(--color-primary); color: #FFFFFF; }
+.home-hero {
+  background:
+    radial-gradient(ellipse at 82% 45%, rgba(216, 185, 105, 0.16), transparent 27%),
+    radial-gradient(ellipse at 20% 24%, rgba(255, 255, 255, 0.72), transparent 48%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 90%);
+}
+
+.auth-aurora-gradient {
+  background: linear-gradient(to bottom right, #DDECF9, #C6DEF4, #B3D2EA);
+}
+
+:root[data-theme="dark"] .auth-aurora-gradient {
+  background: linear-gradient(to bottom right, #111F32, #0C1522, #1C3049);
+}
+
+:root[data-theme="dark"] .home-hero {
+  background:
+    radial-gradient(ellipse at 82% 45%, rgba(216, 185, 105, 0.09), transparent 27%),
+    radial-gradient(ellipse at 20% 24%, rgba(120, 160, 210, 0.1), transparent 48%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 90%);
+}
+
+::selection { background: var(--color-primary); color: var(--color-primary-foreground); }
 
 /* Glass card surface — a soft white panel with a subtle blue-tinted
    border and shadow, in place of plain flat white cards. */
@@ -54,6 +118,13 @@ h1, h2, h3, h4 {
   background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82));
   border: 1px solid var(--color-border);
   box-shadow: 0 1px 2px rgba(20,38,62,0.04), 0 8px 24px rgba(20,38,62,0.05);
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+:root[data-theme="dark"] .glass {
+  background: linear-gradient(180deg, rgba(25, 41, 62, 0.96), rgba(20, 34, 52, 0.94));
+  border-color: var(--color-border);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.18), 0 12px 28px rgba(0,0,0,0.16);
 }
 
 /* Navy glow used on hover states / focal CTAs — soft and shadow-like on a
@@ -67,6 +138,11 @@ h1, h2, h3, h4 {
   border-color: rgba(20,38,62,0.25);
 }
 
+:root[data-theme="dark"] .glow-on-hover:hover {
+  box-shadow: 0 0 0 1px rgba(169,201,240,0.2), 0 14px 32px -10px rgba(0,0,0,0.5);
+  border-color: rgba(169,201,240,0.4);
+}
+
 /* Gradient text remains static so page entry has no moving flashes. */
 .text-shimmer {
   background: linear-gradient(90deg, #14263E, #3B6EA5, #14263E);
@@ -74,6 +150,10 @@ h1, h2, h3, h4 {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+:root[data-theme="dark"] .text-shimmer {
+  background-image: linear-gradient(90deg, #A9C9F0, #E3CB83, #91B8E4);
 }
 
 /* Navy outline button that fills solid on hover — used for secondary CTAs

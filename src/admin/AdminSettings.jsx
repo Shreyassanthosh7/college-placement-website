@@ -1,7 +1,25 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getSettings, updateSettings } from '../services/settingsService'
-import { mockSettings } from '../data/mockData'
+
+const EMPTY_SETTINGS = {
+  collegeName: '',
+  placementCellName: '',
+  logoUrl: '',
+  email: '',
+  phone: '',
+  address: '',
+  secondAddress: '',
+  officeHours: '',
+  aboutText: '',
+  footerText: '',
+  collegeWebsite: '',
+  social: {
+    youtube: '',
+    twitter: '',
+    instagram: '',
+  },
+}
 
 const inputClass =
   'w-full min-h-11 rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
@@ -17,11 +35,7 @@ function Field({ label, children }) {
 }
 
 export default function AdminSettings() {
-  // Falls back to the real current defaults (mockSettings) rather than a
-  // blank form — an admin opening Settings for the very first time should
-  // see (and can then confirm/edit) what's already live on the site, not
-  // an intimidating wall of empty fields.
-  const [form, setForm] = useState(mockSettings)
+  const [form, setForm] = useState(EMPTY_SETTINGS)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -35,15 +49,13 @@ export default function AdminSettings() {
         if (cancelled) return
         if (doc) {
           setForm({
-            ...mockSettings,
+            ...EMPTY_SETTINGS,
             ...doc,
-            social: { ...mockSettings.social, ...(doc.social || {}) },
+            social: { ...EMPTY_SETTINGS.social, ...(doc.social || {}) },
           })
         }
-        // If no doc exists yet, keep the mockSettings-derived defaults
-        // already in state — first save will create it.
       })
-      .catch(() => { if (!cancelled) setLoadError('Unable to load current settings. Showing defaults instead — saving will still work.') })
+      .catch(() => { if (!cancelled) setLoadError('Unable to load saved settings. You can still enter and save updates.') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [])
@@ -106,7 +118,7 @@ export default function AdminSettings() {
         </div>
       )}
       {saved && (
-        <div role="status" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'rgba(34,197,94,0.12)', color: '#22c55e' }}>
+        <div role="status" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'var(--color-success-background)', color: 'var(--color-success)' }}>
           Settings saved — the public site now reflects these changes.
         </div>
       )}
@@ -125,13 +137,15 @@ export default function AdminSettings() {
           <div className="mt-4">
             <Field label="Logo URL">
               <div className="flex items-center gap-3">
-                <img
-                  src={form.logoUrl}
-                  alt="Current logo"
-                  className="w-12 h-12 rounded-full object-contain glass p-1"
-                  onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
-                  onLoad={(e) => { e.currentTarget.style.visibility = 'visible' }}
-                />
+                {form.logoUrl && (
+                  <img
+                    src={form.logoUrl}
+                    alt="Current logo"
+                    className="w-12 h-12 rounded-full object-contain glass p-1"
+                    onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
+                    onLoad={(e) => { e.currentTarget.style.visibility = 'visible' }}
+                  />
+                )}
                 <input
                   className={inputClass}
                   value={form.logoUrl}

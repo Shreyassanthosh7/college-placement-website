@@ -4,19 +4,18 @@ import Reveal from '../components/Reveal'
 export default function About() {
   const { settings } = useSettings()
   const teamMembers = Array.isArray(settings.teamMembers) ? settings.teamMembers : []
+  const identity = [settings.placementCellName, settings.collegeName].filter(Boolean).join(', ')
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
       <Reveal>
         <h1 className="font-display text-3xl font-bold mb-2">About the Placement Cell</h1>
-        <p className="text-muted-foreground max-w-2xl mb-8">
-          {settings.placementCellName}, {settings.collegeName}.
-        </p>
+        {identity && <p className="text-muted-foreground max-w-2xl mb-8">{identity}.</p>}
 
-        <section className="mb-8 glass rounded-xl p-6">
+        {settings.aboutText && <section className="mb-8 glass rounded-xl p-6">
           <h2 className="font-display text-xl font-bold mb-2" style={{ color: 'var(--color-primary)' }}>Our Mission</h2>
           <p className="text-muted-foreground">{settings.aboutText}</p>
-        </section>
+        </section>}
       </Reveal>
 
       <section className="mb-8">

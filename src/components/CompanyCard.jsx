@@ -7,8 +7,8 @@ export default function CompanyCard({ company }) {
     <div className="flex flex-col glass glow-on-hover rounded-xl p-5 transition-transform duration-200 hover:-translate-y-1">
       <div className="flex items-start gap-3 mb-3">
         <div
-          className="w-11 h-11 rounded-md flex items-center justify-center text-white font-bold shrink-0 ring-1"
-          style={{ backgroundColor: company.logoColor || 'var(--color-primary)', '--tw-ring-color': 'var(--color-border)' }}
+          className="w-11 h-11 rounded-md flex items-center justify-center font-bold shrink-0 ring-1"
+          style={{ backgroundColor: company.logoColor || 'var(--color-primary)', color: company.logoColor ? '#fff' : 'var(--color-primary-foreground)', '--tw-ring-color': 'var(--color-border)' }}
           aria-hidden="true"
         >
           {company.logoInitials || company.logoInitial}

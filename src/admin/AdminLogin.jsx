@@ -3,6 +3,7 @@ import { useLocation, Navigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import logo from '../assets/logo.png'
 import AuroraBackground from '../components/AuroraBackground'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function AdminLogin() {
   const { signIn, signOut, isAdmin, status, firebaseUser, error } = useAuth()
@@ -112,6 +113,7 @@ export default function AdminLogin() {
         </svg>
         Home
       </Link>
+      <ThemeToggle className="absolute right-5 top-5 z-10" />
 
       <div className="relative w-full max-w-sm glass rounded-2xl p-8">
         <div className="flex items-center gap-3 mb-6">

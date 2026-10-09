@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getSettings, updateSettings } from '../services/settingsService'
 import { archiveTeamMember } from '../services/archiveService'
-import { mockSettings } from '../data/mockData'
 import AccessibleDialog from '../components/AccessibleDialog'
 
 const inputClass = 'w-full min-h-11 rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
@@ -36,7 +35,7 @@ export default function AdminTeam() {
     getSettings()
       .then((settings) => {
         if (cancelled) return
-        const members = Array.isArray(settings?.teamMembers) ? settings.teamMembers : mockSettings.teamMembers
+        const members = Array.isArray(settings?.teamMembers) ? settings.teamMembers : []
         setTeamMembers(normalizeMembers(members))
       })
       .catch(() => {
@@ -246,7 +245,7 @@ export default function AdminTeam() {
               <button type="button" onClick={() => setConfirmArchive(null)} disabled={saving} className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50">
                 Cancel
               </button>
-              <button type="button" onClick={() => archiveMember(confirmArchive)} disabled={saving} className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}>
+              <button type="button" onClick={() => archiveMember(confirmArchive)} disabled={saving} className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-destructive)', color: 'var(--color-destructive-foreground)' }}>
                 {saving ? 'Archiving…' : 'Archive'}
               </button>
             </div>

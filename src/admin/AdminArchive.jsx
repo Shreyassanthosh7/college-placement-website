@@ -111,7 +111,7 @@ export default function AdminArchive() {
         </div>
       )}
       {actionError && !confirmDelete && <div role="alert" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'rgba(248,113,113,0.12)', color: 'var(--color-destructive)' }}>{actionError}</div>}
-      {notice && <div role="status" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'rgba(34,197,94,0.12)', color: '#15803d' }}>{notice}</div>}
+      {notice && <div role="status" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'var(--color-success-background)', color: 'var(--color-success)' }}>{notice}</div>}
 
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4" role="group" aria-label="Filter archive by type">
         {FILTERS.map((type) => {
@@ -181,7 +181,7 @@ export default function AdminArchive() {
           </p>
           <div className="flex justify-end gap-3">
             <button type="button" onClick={() => setConfirmDelete(null)} disabled={Boolean(pendingId)} className="min-h-11 rounded-full px-4 text-sm font-semibold text-muted-foreground disabled:opacity-50">Cancel</button>
-            <button type="button" onClick={() => deletePermanently(confirmDelete)} disabled={Boolean(pendingId)} className="min-h-11 rounded-full px-4 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}>{pendingId ? 'Deleting…' : 'Delete permanently'}</button>
+            <button type="button" onClick={() => deletePermanently(confirmDelete)} disabled={Boolean(pendingId)} className="min-h-11 rounded-full px-4 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-destructive)', color: 'var(--color-destructive-foreground)' }}>{pendingId ? 'Deleting…' : 'Delete permanently'}</button>
           </div>
         </AccessibleDialog>
       )}

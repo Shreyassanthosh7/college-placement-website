@@ -1,14 +1,14 @@
 const STYLES = {
-  active: { bg: '#E7F6EE', fg: '#0A7A44', label: 'Active' },
-  upcoming: { bg: '#EEF1F6', fg: '#1E4FA0', label: 'Upcoming' },
-  closed: { bg: '#F3E7E7', fg: '#8a3b3b', label: 'Closed' },
-  completed: { bg: '#F3E7E7', fg: '#8a3b3b', label: 'Completed' },
-  draft: { bg: '#F1F1F1', fg: '#666666', label: 'Draft' },
-  published: { bg: '#E7F6EE', fg: '#0A7A44', label: 'Published' },
+  active: { bg: 'var(--badge-active-bg)', fg: 'var(--badge-active-fg)', label: 'Active' },
+  upcoming: { bg: 'var(--badge-upcoming-bg)', fg: 'var(--badge-upcoming-fg)', label: 'Upcoming' },
+  closed: { bg: 'var(--badge-closed-bg)', fg: 'var(--badge-closed-fg)', label: 'Closed' },
+  completed: { bg: 'var(--badge-closed-bg)', fg: 'var(--badge-closed-fg)', label: 'Completed' },
+  draft: { bg: 'var(--badge-draft-bg)', fg: 'var(--badge-draft-fg)', label: 'Draft' },
+  published: { bg: 'var(--badge-active-bg)', fg: 'var(--badge-active-fg)', label: 'Published' },
 }
 
 export default function Badge({ status }) {
-  const s = STYLES[status] || { bg: '#EEF1F6', fg: '#475569', label: status }
+  const s = STYLES[status] || { bg: 'var(--badge-upcoming-bg)', fg: 'var(--badge-upcoming-fg)', label: status }
   return (
     <span
       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"

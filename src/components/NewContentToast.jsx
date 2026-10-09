@@ -82,7 +82,7 @@ export default function NewContentToast({ counts, onDismiss }) {
               <Link
                 to={item.to}
                 onClick={handleDismiss}
-                className="flex items-center justify-between gap-2 text-sm rounded-lg px-3 py-2 transition-colors duration-200 hover:bg-white/5"
+                className="flex items-center justify-between gap-2 text-sm rounded-lg px-3 py-2 transition-colors duration-200 hover:bg-foreground/5"
               >
                 <span>{item.label}</span>
                 <span style={{ color: 'var(--color-primary)' }}>→</span>

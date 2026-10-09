@@ -8,6 +8,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
+import { subscribeToCollection } from '../firebase/firestore'
 
 const COLLECTION = 'placements'
 const SETTINGS_REF = doc(db, 'settings', 'general')
@@ -15,6 +16,10 @@ const SETTINGS_REF = doc(db, 'settings', 'general')
 export async function getAllPlacements() {
   const snapshot = await getDocs(collection(db, COLLECTION))
   return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }))
+}
+
+export function subscribeToPlacements(callback, onError) {
+  return subscribeToCollection(COLLECTION, callback, onError)
 }
 
 export async function createPlacement(data) {

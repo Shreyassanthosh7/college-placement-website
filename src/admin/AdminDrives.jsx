@@ -190,7 +190,7 @@ export default function AdminDrives() {
                 onClick={() => handleArchive(confirmArchive)}
                 disabled={pendingAction === confirmArchive.id}
                 className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60"
-                style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}
+                style={{ backgroundColor: 'var(--color-destructive)', color: 'var(--color-destructive-foreground)' }}
               >
                 {pendingAction === confirmArchive.id ? 'Archiving…' : 'Archive'}
               </button>

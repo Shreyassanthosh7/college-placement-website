@@ -66,8 +66,8 @@ export default function CompanyDetails() {
       {/* Header */}
       <div className="flex items-start gap-4 mt-4 mb-6">
         <div
-          className="w-14 h-14 rounded-md flex items-center justify-center text-white font-bold text-lg shrink-0"
-          style={{ backgroundColor: company.logoColor || 'var(--color-primary)' }}
+          className="w-14 h-14 rounded-md flex items-center justify-center font-bold text-lg shrink-0"
+          style={{ backgroundColor: company.logoColor || 'var(--color-primary)', color: company.logoColor ? '#fff' : 'var(--color-primary-foreground)' }}
           aria-hidden="true"
         >
           {company.logoInitials || company.logoInitial}

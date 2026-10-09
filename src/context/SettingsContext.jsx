@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { SettingsContext } from './settings-context'
 import { subscribeToSettings } from '../services/settingsService'
-import { mockSettings } from '../data/mockData'
 
 /**
  * Site-wide settings (spec section 27), subscribed to once for every
@@ -16,13 +15,9 @@ import { mockSettings } from '../data/mockData'
  * real-time pattern already used for companies/drives/announcements (see
  * NotificationContext.jsx).
  *
- * `settings` is always a fully-populated object — real saved values are
- * merged on top of `mockSettings` as defaults, field by field (including
- * the nested `social` object), so:
- *   - Before any admin has ever saved Settings, the site shows the same
- *     real TNDALU info it always has — not a broken, empty page.
- *   - After a partial save (e.g. an admin only updates the phone number),
- *     everything else still falls back sensibly instead of disappearing.
+ * The public site uses only saved settings. Empty values stay empty until an
+ * administrator fills them in, and the social object is always available to
+ * consumers that read individual links.
  */
 export function SettingsProvider({ children }) {
   const [saved, setSaved] = useState(null)
@@ -35,9 +30,6 @@ export function SettingsProvider({ children }) {
         setLoading(false)
       },
       () => {
-        // Fall back to mockSettings defaults below — not worth an error
-        // banner site-wide just because Settings couldn't load; the rest
-        // of the site should still work.
         setLoading(false)
       }
     )
@@ -45,9 +37,8 @@ export function SettingsProvider({ children }) {
   }, [])
 
   const settings = {
-    ...mockSettings,
-    ...saved,
-    social: { ...mockSettings.social, ...(saved?.social || {}) },
+    ...(saved || {}),
+    social: { ...(saved?.social || {}) },
   }
 
   return (

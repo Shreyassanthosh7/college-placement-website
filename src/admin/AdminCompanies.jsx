@@ -106,8 +106,8 @@ export default function AdminCompanies() {
                 <tr key={c.id} className="border-t" style={{ borderColor: 'var(--color-border)' }}>
                   <td className="px-4 py-3">
                     <div
-                      className="w-9 h-9 rounded-md flex items-center justify-center text-white font-bold text-xs"
-                      style={{ backgroundColor: c.logoColor || 'var(--color-primary)' }}
+                      className="w-9 h-9 rounded-md flex items-center justify-center font-bold text-xs"
+                      style={{ backgroundColor: c.logoColor || 'var(--color-primary)', color: c.logoColor ? '#fff' : 'var(--color-primary-foreground)' }}
                       aria-hidden="true"
                     >
                       {c.logoInitials || c.logoInitial || '—'}
@@ -183,7 +183,7 @@ export default function AdminCompanies() {
                 onClick={() => handleArchive(confirmArchive)}
                 disabled={pendingAction === confirmArchive.id}
                 className="min-h-11 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60"
-                style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}
+                style={{ backgroundColor: 'var(--color-destructive)', color: 'var(--color-destructive-foreground)' }}
               >
                 {pendingAction === confirmArchive.id ? 'Archiving…' : 'Archive'}
               </button>

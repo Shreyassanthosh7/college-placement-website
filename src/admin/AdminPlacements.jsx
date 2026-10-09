@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { archiveRecord } from '../services/archiveService'
-import { createPlacement, getAllPlacements, updatePlacement } from '../services/placementService'
+import { createPlacement, subscribeToPlacements, updatePlacement } from '../services/placementService'
 import AccessibleDialog from '../components/AccessibleDialog'
 
 const inputClass = 'w-full min-h-11 rounded-lg glass px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 disabled:opacity-60'
@@ -27,20 +27,19 @@ export default function AdminPlacements() {
   const headingRef = useRef(null)
 
   useEffect(() => {
-    let cancelled = false
     setLoading(true)
     setLoadError(null)
-    getAllPlacements()
-      .then((records) => {
-        if (!cancelled) setPlacements(sortPlacements(records))
-      })
-      .catch(() => {
-        if (!cancelled) setLoadError('Unable to load placement records. Please try again.')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => { cancelled = true }
+    return subscribeToPlacements(
+      (records) => {
+        setPlacements(sortPlacements(records))
+        setLoadError(null)
+        setLoading(false)
+      },
+      () => {
+        setLoadError('Unable to load placement records. Please try again.')
+        setLoading(false)
+      }
+    )
   }, [loadAttempt])
 
   function startAdd() {
@@ -73,11 +72,9 @@ export default function AdminPlacements() {
     try {
       if (draft.id) {
         await updatePlacement(draft.id, record)
-        setPlacements((current) => sortPlacements(current.map((item) => item.id === draft.id ? { ...item, ...record } : item)))
         setSavedMessage('Placement record updated.')
       } else {
-        const id = await createPlacement(record)
-        setPlacements((current) => sortPlacements([...current, { id, ...record }]))
+        await createPlacement(record)
         setSavedMessage('Placement record added. The public homepage total was updated.')
       }
       setDraft(null)
@@ -95,7 +92,6 @@ export default function AdminPlacements() {
     setActionError(null)
     try {
       await archiveRecord('placement', placement.id)
-      setPlacements((current) => current.filter((item) => item.id !== placement.id))
       setConfirmArchive(null)
       setSavedMessage('Placement archived. The public homepage total was decreased; you can restore it from Archive.')
     } catch (error) {
@@ -132,12 +128,12 @@ export default function AdminPlacements() {
         </div>
       )}
       {actionError && !confirmArchive && <div role="alert" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'rgba(248,113,113,0.12)', color: 'var(--color-destructive)' }}>{actionError}</div>}
-      {savedMessage && <div role="status" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'rgba(34,197,94,0.12)', color: '#15803d' }}>{savedMessage}</div>}
+      {savedMessage && <div role="status" className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ backgroundColor: 'var(--color-success-background)', color: 'var(--color-success)' }}>{savedMessage}</div>}
 
       <div className="glass rounded-xl p-4 sm:p-5 mb-5 flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-xs text-muted-foreground">Placement records managed here</p>
-          <p className="font-display text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>{loading ? '···' : placements.length}</p>
+          <p className="font-display text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>{loading ? '···' : loadError ? '—' : placements.length}</p>
         </div>
         <p className="text-xs text-muted-foreground max-w-xl">
           Any historical total already in Settings is preserved as a starting count. New records are added to it automatically.
@@ -221,7 +217,7 @@ export default function AdminPlacements() {
           <p id="archive-placement-description" className="text-sm text-muted-foreground mb-6">{confirmArchive.studentName}'s record will be removed from the list and the homepage total. You can restore it later from Archive.</p>
           <div className="flex justify-end gap-3">
             <button type="button" onClick={() => setConfirmArchive(null)} disabled={Boolean(pendingArchive)} className="min-h-11 rounded-full px-4 text-sm font-semibold text-muted-foreground disabled:opacity-50">Cancel</button>
-            <button type="button" onClick={() => archivePlacement(confirmArchive)} disabled={Boolean(pendingArchive)} className="min-h-11 rounded-full px-4 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-destructive)', color: '#fff' }}>{pendingArchive ? 'Archiving…' : 'Archive'}</button>
+            <button type="button" onClick={() => archivePlacement(confirmArchive)} disabled={Boolean(pendingArchive)} className="min-h-11 rounded-full px-4 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--color-destructive)', color: 'var(--color-destructive-foreground)' }}>{pendingArchive ? 'Archiving…' : 'Archive'}</button>
           </div>
         </AccessibleDialog>
       )}
